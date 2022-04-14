@@ -27,29 +27,57 @@ void motorCheck() {
   CAN.sendMsgBuf(0x141, 0, 8, mecanumWheelMotor1);
   if (CAN_MSGAVAIL == CAN.checkReceive()) {
     CAN.readMsgBuf(&canReadBuffer, mecanumWheelMotor1);
-
     currValue = mecanumWheelMotor1[2];
-    roundValue = mecanumWheelMotor1[3];
-
+    sensorValue = analogRead(A0);
+    if (isHit) {
+      Serial.print(sensorValue - prevSensorValue);
+      Serial.print("\t");
+      Serial.println(currValue);
+    } else {
+      prevSensorValue = sensorValue;
+    }
   }
-  if (currValue > 0) {
-    Serial.print("lowbyte: ");
-    Serial.print(currValue);
-    Serial.print("  highbyte: ");
-    Serial.println(roundValue);
+  if (isHit && sensorValue - prevSensorValue >= 10 &&  prevValue > 40 && prevValue < 50 && currValue > 50 && currValue < 60) {
+    Serial.println("  Finish Hitting");
+    motorPositionMode(homePos);
+    isHit = false;
+  } else if (isHit && currentMillis - hittingCount >= hittingInterval) {
+    Serial.println("  Finish Hitting");
+    motorPositionMode(homePos);
+    isHit = false;
   }
-  //motorLoop();
+  if (prevValue != currValue) {
+    prevValue = currValue;
+  }
 }
 
-void motorLoop() {
+void motorTorqueMode() {
 
   unsigned char buf1[8];
   //===================
   buf1[0] = 0xA1;
   buf1[2] = 0x00;
   buf1[3] = 0x00;
-  buf1[4] = -6;
+  buf1[4] = torqueSpeed;
   buf1[5] = 0;
+  buf1[6] = 0x00;
+  buf1[7] = 0x00;
+
+  CAN.sendMsgBuf(0x141, 0, 8, buf1);
+  isHit = true;
+  hittingCount = currentMillis;
+}
+
+void motorPositionMode(long pos) {
+
+  unsigned char buf1[8];
+  //===================
+  buf1[0] = 0xA5;
+  buf1[1] = 0x01;
+  buf1[2] = 0x00;
+  buf1[3] = 0x00;
+  buf1[4] = pos;
+  buf1[5] = pos >> 8;
   buf1[6] = 0x00;
   buf1[7] = 0x00;
 

@@ -3,7 +3,12 @@
 unsigned long previousMillis = 0;
 const long interval = 1000;
 bool isStringStart = false;
-byte msg [] = {0x3E, 0x00, 0x01, 0x56, 0x02, 0xe8, 0x03, 0x47, 0x4A, 0x00, 0x00};
+byte msg [] = {0x3E, 0x00, 0x01, 0x56, 0x02, 0x10, 0x27, 0x47, 0x4A, 0x00, 0x00};
+
+int dataCount = 0;
+byte buf[15];
+String rec;
+char bufStr[99] = "";
 
 Crc16 crc;
 
@@ -13,25 +18,35 @@ void setup() {
 }
 
 void loop() {
+  if (Serial.available()) {
+    String command = Serial.readStringUntil('\n');
+    long cmd = command.toInt();
+    uint16_t value = cmd;
+    unsigned char high_byte = value >> 8;
+    unsigned char low_byte = value & 0xFF;
+    msg[5] = low_byte;;
+    msg[6] = high_byte;;
+
+
+  }
+
   unsigned long currentMillis = millis();
 
   if (currentMillis - previousMillis >= interval) {
     // save the last time you blinked the LED
     previousMillis = currentMillis;
-
     //check CRC
     crc.clearCrc();
-    unsigned short value;
-    value = crc.Modbus(msg, 0, 7);
-    Serial.print("Modbus crc = 0x");
-    Serial.println(value, HEX);
-    uint16_t checkSum = value;
-    unsigned char high_byte = checkSum >> 8;
-    unsigned char low_byte = checkSum & 0xFF;
-    msg[7] = low_byte;
-    msg[8] = high_byte;
+    unsigned short crcValue = crc.Modbus(msg, 0, 7);
+    //Serial.print("Modbus crc = 0x");
+    //Serial.println(crcValue, HEX);
+    uint16_t CRCvalue = crcValue;
+    unsigned char high_ByteCRC = CRCvalue >> 8;
+    unsigned char low_ByteCRC = CRCvalue & 0xFF;
+    msg[7] = low_ByteCRC;
+    msg[8] = high_ByteCRC;
 
-
+    Serial.println();
     Serial.print("S : ");
     for (int i = 0; i < sizeof(msg); i++) {
       Serial.print(msg[i], HEX);          // console print the data
@@ -43,17 +58,24 @@ void loop() {
     Serial.println();
   }
 
-  while (Serial1.available()) {
-    char inChar = (char)Serial.read();
-    if (!isStringStart) {
-      Serial.print("R : ");
-      isStringStart = true;
+  if (Serial1.available()) {
+
+    byte b = Serial1.read();
+    //Serial.print(b, HEX);
+    //Serial.print(" ");
+    buf[dataCount] = b;
+
+    Serial1.flush();
+
+    dataCount++;
+    if (dataCount >= 15) {
+      dataCount = 0;
+      String low_Byte = String(buf[11]);
+      String high_Byte = String(buf[12]);
+      String combinedMsg = high_Byte + low_Byte;
+      uint16_t value = combinedMsg.toInt();
+      Serial.print("Speed : ");
+      Serial.println(value, DEC);
     }
-    Serial.print(Serial1.read(), HEX);
-    Serial.print(" ");
-  }
-  if (isStringStart) {
-    Serial.println();
-    isStringStart = false;
   }
 }

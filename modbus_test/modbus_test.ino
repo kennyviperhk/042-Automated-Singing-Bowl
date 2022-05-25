@@ -5,8 +5,6 @@ const long interval = 1000;
 bool isStringStart = false;
 byte msg [] = {0x3E, 0x00, 0x01, 0x56, 0x02, 0xe8, 0x03, 0x47, 0x4A, 0x00, 0x00};
 
-byte msg2 [] = {0x3E, 0x00, 0x01, 0x56, 0x02, 0xe8, 0x03};
-
 Crc16 crc;
 
 void setup() {
@@ -20,6 +18,20 @@ void loop() {
   if (currentMillis - previousMillis >= interval) {
     // save the last time you blinked the LED
     previousMillis = currentMillis;
+
+    //check CRC
+    crc.clearCrc();
+    unsigned short value;
+    value = crc.Modbus(msg, 0, 7);
+    Serial.print("Modbus crc = 0x");
+    Serial.println(value, HEX);
+    uint16_t checkSum = value;
+    unsigned char high_byte = checkSum >> 8;
+    unsigned char low_byte = checkSum & 0xFF;
+    msg[7] = low_byte;
+    msg[8] = high_byte;
+
+
     Serial.print("S : ");
     for (int i = 0; i < sizeof(msg); i++) {
       Serial.print(msg[i], HEX);          // console print the data
@@ -29,13 +41,6 @@ void loop() {
       }
     }
     Serial.println();
-    crc.clearCrc();
-    unsigned short value;
-    value = crc.Modbus(msg2, 0, sizeof(msg2));
-    Serial.print("Modbus crc = 0x");
-    Serial.println(value, HEX);
-    String cmd = String(value);
-    Serial.println(cmd.substring(0, 2), HEX);
   }
 
   while (Serial1.available()) {

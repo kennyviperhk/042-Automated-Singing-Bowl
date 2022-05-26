@@ -25,6 +25,9 @@ void loop() {
 
   unsigned long currentMillis = millis();
   if (Serial.available()) {
+    if (currentMillis - previousMillis >= interval) {
+      // save the last time you blinked the LED
+      previousMillis = currentMillis;
       String command = Serial.readStringUntil('\n');
       long cmd = command.toInt();
       uint16_t value = cmd;
@@ -36,10 +39,7 @@ void loop() {
       Serial.print(low_byte, HEX);
       Serial.print(" 0x");
       Serial.println(high_byte, HEX);
-      
-    if (currentMillis - previousMillis >= interval) {
-      // save the last time you blinked the LED
-      previousMillis = currentMillis;
+
 
       //check CRC
       crc.clearCrc();

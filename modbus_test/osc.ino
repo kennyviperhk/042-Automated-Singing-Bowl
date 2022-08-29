@@ -22,7 +22,8 @@ void ethernetLoop() {
       bundleIN.fill(Udp.read());
     if (!bundleIN.hasError())
     {
-      bundleIN.route("/torque" , oscTorque);
+      bundleIN.route("/hit" , oscHit);
+      bundleIN.route("/position" , oscPos);
       bundleIN.route("/speed" , oscSpeed);
 
     } else {
@@ -31,9 +32,9 @@ void ethernetLoop() {
   }
 }
 
-void oscTorque(OSCMessage & msg, int addrOffset) {
+void oscHit(OSCMessage & msg, int addrOffset) {
   if (msg.isInt(0)) {
-    String cmd = "torque " + String(msg.getInt(0));
+    String cmd = "hit " + String(msg.getInt(0));
     uint16_t value = msg.getInt(0);
     unsigned char high_byte = value >> 8;
     unsigned char low_byte = value & 0xFF;
@@ -43,7 +44,35 @@ void oscTorque(OSCMessage & msg, int addrOffset) {
 
     Serial.println(cmd);
 
-    motorTorque();
+    motorHit();
+  }
+}
+
+void oscPos(OSCMessage & msg, int addrOffset) {
+  if (msg.isInt(0)) {
+    String cmd = "position " + String(msg.getInt(0));
+    uint32_t value = msg.getInt(0);
+    unsigned char high_byte = value >> 24;
+    unsigned char mid_byte2 = value >> 16;
+    unsigned char mid_byte1 = value >> 8;
+    unsigned char low_byte = value & 0xFF;
+
+    positionCommand[5] = low_byte;;
+    positionCommand[6] = mid_byte1;
+    positionCommand[7] = mid_byte2;
+    positionCommand[8] = high_byte;
+
+    Serial.print(low_byte);
+    Serial.print(" ");
+    Serial.print(mid_byte1);
+    Serial.print(" ");
+    Serial.print(mid_byte2);
+    Serial.print(" ");
+    Serial.print(high_byte);
+    Serial.print(" ");
+    Serial.println(cmd);
+
+    motorMove();
   }
 }
 
@@ -59,6 +88,6 @@ void oscSpeed(OSCMessage & msg, int addrOffset) {
 
     Serial.println(cmd);
 
-    motorMove();
+    motorSpeed();
   }
 }

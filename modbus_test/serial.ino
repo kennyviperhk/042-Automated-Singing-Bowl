@@ -1,8 +1,14 @@
 void serialLoop() {
   if (Serial.available()) {
-    if (isGoingBack) {
-      Serial.println("Start Check Motor");
-      isGoingBack = false;
+    String command = Serial.readStringUntil('\n');
+    if (command.equals("d")) {
+      if (!debugMode) {
+        Serial.println("Debug Mode On");
+        debugMode = true;
+      } else {
+        Serial.println("Debug Mode Off");
+        debugMode = false;
+      }
     }
   }
 }

@@ -122,7 +122,7 @@ void motorCheck() {
         //Serial.print(buf[i], HEX);
         //Serial.print(" ");
       }
-      if (!isGoingBack || torqueBack) {
+      if (!isGoingBack || debugMode) {
         Serial.print(angleValue);
         Serial.print("\t");
         Serial.println(speedValue);

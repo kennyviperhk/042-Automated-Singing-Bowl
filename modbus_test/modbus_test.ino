@@ -43,6 +43,8 @@ bool isTorqueMode = false;
 int prevValue = 0;
 long currentMillis;
 
+bool debugMode = false;
+
 Crc16 crc;
 
 void setup() {

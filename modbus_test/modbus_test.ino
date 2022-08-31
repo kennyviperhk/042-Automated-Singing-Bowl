@@ -25,7 +25,7 @@ const unsigned int outPort = 20000;
 
 unsigned long previousMillis = 0;
 unsigned long previousCheckMillis = 0;
-const long interval = 500;
+const long interval = 1000;
 const long checkInterval = 10;
 bool isStringStart = false;
 byte torqueCommand [] = {0x3E, 0x00, 0x01, 0x54, 0x02, 0xD0, 0x07, 0x00, 0x00, 0x00, 0x00};

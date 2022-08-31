@@ -39,8 +39,8 @@ void motorSpeed() {
 }
 
 void motorHit() {
-  if (isGoingBack) {
-    previousCheckMillis = currentMillis;
+  if (isGoingBack && (currentMillis - previousMillis >= interval)) {
+    previousCheckMillis = currentMillis + 1000;
     //check CRC
     crc.clearCrc();
     unsigned short crcValue = crc.Modbus(torqueCommand, 0, sizeof(torqueCommand) - 4);
@@ -68,7 +68,7 @@ void motorHit() {
 }
 
 void motorCheck() {
-  if (currentMillis - previousCheckMillis >= checkInterval) {
+  if ((currentMillis - previousCheckMillis >= checkInterval) && (!isGoingBack || debugMode)) {
     // save the last time you blinked the LED
     previousCheckMillis = currentMillis;
     crc.clearCrc();
@@ -129,7 +129,7 @@ void motorCheck() {
       }
 
       if (!isGoingBack) {
-        if ((angleValue >= 10170 && speedValue <= 400 && speedValue != 0)) {
+        if ((angleValue >= 12000 && speedValue <= 400 && speedValue != 0)) {
           Serial.print("Angle : ");
           Serial.print(angleValue);
           Serial.print(" Speed : ");
@@ -147,6 +147,7 @@ void motorCheck() {
             serialOut1.write(moveCommand[i]);                // flip display print
           }
           isGoingBack = true;
+          previousMillis = currentMillis + 1000;
         }
       }
     }

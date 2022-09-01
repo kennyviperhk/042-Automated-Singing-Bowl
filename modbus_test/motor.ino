@@ -134,18 +134,20 @@ void motorCheck() {
           Serial.print(angleValue);
           Serial.print(" Speed : ");
           Serial.println(speedValue);
-          //check CRC
-          crc.clearCrc();
-          unsigned short crcValue = crc.Modbus(moveCommand, 0, sizeof(moveCommand) - 4);
-          uint16_t CRCvalue = crcValue;
-          unsigned char high_ByteCRC = CRCvalue >> 8;
-          unsigned char low_ByteCRC = CRCvalue & 0xFF;
-          moveCommand[7] = low_ByteCRC;
-          moveCommand[8] = high_ByteCRC;
 
-          for (int i = 0; i < sizeof(moveCommand); i++) {
-            serialOut1.write(moveCommand[i]);                // flip display print
-          }
+          uint32_t value = 1670;
+          unsigned char high_byte = value >> 24;
+          unsigned char mid_byte2 = value >> 16;
+          unsigned char mid_byte1 = value >> 8;
+          unsigned char low_byte = value & 0xFF;
+
+          positionCommand[5] = low_byte;;
+          positionCommand[6] = mid_byte1;
+          positionCommand[7] = mid_byte2;
+          positionCommand[8] = high_byte;
+
+          motorMove();
+
           isGoingBack = true;
           previousMillis = currentMillis + 1000;
         }
